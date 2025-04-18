@@ -255,6 +255,10 @@
             margin-bottom: 15px;
         }
 
+        .mode-toggle h3 {
+            color: var(--digit-color);
+        }
+
         .mode-btn {
             background-color: var(--button-bg);
             border: none;
@@ -309,11 +313,69 @@
                 margin-bottom: 15px;
             }
         }
+
+        .history-tab {
+            background-color: var(--calculator-bg);
+            border-radius: 20px;
+            box-shadow: 15px 15px 30px rgba(0, 0, 0, 0.15), -15px -15px 30px rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            margin-top: 20px;
+            max-height: 150px;
+            overflow-y: auto;
+            scrollbar-width: none;
+        }
+
+        .history-tab.active {
+            display: block;
+        }
+
+        .history-item {
+            font-size: clamp(12px, 3vw, 16px);
+            color: var(--digit-color);
+            margin-bottom: 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .history-header h3 {
+            color: var(--digit-color);
+            font-size: 16px;
+        }
+
+        .clear-history-btn {
+            background-color: var(--button-bg);
+            border: none;
+            border-radius: 50px;
+            box-shadow: var(--button-shadow);
+            color: var(--digit-color);
+            cursor: pointer;
+            font-size: clamp(12px, 3vw, 14px);
+            padding: 5px 10px;
+            transition: all 0.2s ease;
+        }
+
+        .clear-history-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .clear-history-btn:active {
+            transform: translateY(0);
+            box-shadow: var(--button-active);
+        }
     </style>
 </head>
 
 <body>
     <div class="calculator">
+        <!-- Theme and Mode Toggle -->
         <div class="theme-toggle">
             <h3>Theme</h3>
             <div class="theme-options">
@@ -327,10 +389,14 @@
             <h3>Mode</h3>
             <button class="mode-btn" id="mode-toggle-btn">Scientific</button>
         </div>
+
+        <!-- Display -->
         <div class="display">
             <div class="previous-operand"></div>
             <div class="current-operand">0</div>
         </div>
+
+        <!-- Buttons -->
         <div class="buttons">
             <button class="btn" data-action="clear">C</button>
             <button class="btn" data-action="delete">⌫</button>
@@ -352,6 +418,8 @@
             <button class="btn" data-action="decimal">.</button>
             <button class="btn equals" data-action="calculate">=</button>
         </div>
+
+        <!-- Scientific Buttons -->
         <div class="scientific-buttons">
             <button class="btn" data-action="sin">sin</button>
             <button class="btn" data-action="cos">cos</button>
@@ -369,14 +437,24 @@
             <button class="btn" data-action="e">e</button>
             <button class="btn" data-action="factorial">!</button>
         </div>
+
+        <!-- History Tab -->
+        <div class="history-tab">
+            <div class="history-header">
+                <h3>History</h3>
+                <button class="clear-history-btn" id="clear-history-btn">Clear</button>
+            </div>
+            <div class="history-list"></div>
+        </div>
     </div>
     <script>
-        // Calculator Class
+        // Calculator Class with Memory Functionality
         class Calculator {
             constructor(previousOperandElement, currentOperandElement) {
                 this.previousOperandElement = previousOperandElement;
                 this.currentOperandElement = currentOperandElement;
                 this.clear();
+                this.history = [];
             }
             clear() {
                 this.currentOperand = '0';
@@ -448,9 +526,14 @@
                     }
                     this.currentOperand = computation;
                 }
+                this.addToHistory(`${prev} ${this.operation} ${current} = ${this.currentOperand}`);
                 this.operation = undefined;
                 this.previousOperand = '';
                 this.updateDisplay();
+            }
+            addToHistory(entry) {
+                this.history.push(entry);
+                this.updateHistoryDisplay();
             }
             getDisplayNumber(number) {
                 const stringNumber = number.toString();
@@ -480,6 +563,16 @@
                 } else {
                     this.previousOperandElement.innerText = '';
                 }
+            }
+            updateHistoryDisplay() {
+                const historyList = document.querySelector('.history-list');
+                historyList.innerHTML = '';
+                this.history.forEach(entry => {
+                    const historyItem = document.createElement('div');
+                    historyItem.classList.add('history-item');
+                    historyItem.textContent = entry;
+                    historyList.appendChild(historyItem);
+                });
             }
         }
 
@@ -513,7 +606,6 @@
                         calculator.calculate();
                         break;
                     default:
-                        // Handle scientific operations
                         const scientificAction = button.getAttribute('data-action');
                         if (scientificAction) {
                             handleScientificOperation(scientificAction);
@@ -546,21 +638,88 @@
                 return result;
             }
         };
-
         function handleScientificOperation(action) {
             const currentOperand = parseFloat(calculator.currentOperand);
             if (!isNaN(currentOperand)) {
-                const result = scientificOperations[action](currentOperand);
+                let result;
+                let operationLabel;
+
+                // Perform the scientific operation and generate a label for the history
+                switch (action) {
+                    case 'sin':
+                        result = scientificOperations.sin(currentOperand);
+                        operationLabel = `sin(${currentOperand})`;
+                        break;
+                    case 'cos':
+                        result = scientificOperations.cos(currentOperand);
+                        operationLabel = `cos(${currentOperand})`;
+                        break;
+                    case 'tan':
+                        result = scientificOperations.tan(currentOperand);
+                        operationLabel = `tan(${currentOperand})`;
+                        break;
+                    case 'log':
+                        result = scientificOperations.log(currentOperand);
+                        operationLabel = `log(${currentOperand})`;
+                        break;
+                    case 'ln':
+                        result = scientificOperations.ln(currentOperand);
+                        operationLabel = `ln(${currentOperand})`;
+                        break;
+                    case 'exp':
+                        result = scientificOperations.exp(currentOperand);
+                        operationLabel = `e^${currentOperand}`;
+                        break;
+                    case 'pow10':
+                        result = scientificOperations.pow10(currentOperand);
+                        operationLabel = `10^${currentOperand}`;
+                        break;
+                    case 'pow2':
+                        result = scientificOperations.pow2(currentOperand);
+                        operationLabel = `${currentOperand}²`;
+                        break;
+                    case 'pow3':
+                        result = scientificOperations.pow3(currentOperand);
+                        operationLabel = `${currentOperand}³`;
+                        break;
+                    case 'sqrt':
+                        result = scientificOperations.sqrt(currentOperand);
+                        operationLabel = `√${currentOperand}`;
+                        break;
+                    case 'cbrt':
+                        result = scientificOperations.cbrt(currentOperand);
+                        operationLabel = `∛${currentOperand}`;
+                        break;
+                    case 'pi':
+                        result = scientificOperations.pi();
+                        operationLabel = `π`;
+                        break;
+                    case 'e':
+                        result = scientificOperations.e();
+                        operationLabel = `e`;
+                        break;
+                    case 'factorial':
+                        result = scientificOperations.factorial(currentOperand);
+                        operationLabel = `${currentOperand}!`;
+                        break;
+                    default:
+                        return;
+                }
+
+                // Update the current operand with the result
                 calculator.currentOperand = result.toString();
                 calculator.updateDisplay();
+
+                // Add the scientific operation to the history
+                calculator.addToHistory(`${operationLabel} = ${result}`);
             }
         }
+
 
         // Mode Toggle Logic
         const modeToggleBtn = document.getElementById('mode-toggle-btn');
         const calculatorDiv = document.querySelector('.calculator');
         let isScientificMode = false;
-
         modeToggleBtn.addEventListener('click', () => {
             isScientificMode = !isScientificMode;
             calculatorDiv.classList.toggle('scientific-mode');
@@ -574,6 +733,19 @@
                 const theme = button.getAttribute('data-theme');
                 document.body.className = theme === 'light' ? '' : `${theme}-theme`;
             });
+        });
+
+        // Show/Hide History Tab
+        const historyTab = document.querySelector('.history-tab');
+        document.querySelector('.previous-operand').addEventListener('click', () => {
+            historyTab.classList.toggle('active');
+        });
+
+        // Clear History Button
+        const clearHistoryBtn = document.getElementById('clear-history-btn');
+        clearHistoryBtn.addEventListener('click', () => {
+            calculator.history = [];
+            calculator.updateHistoryDisplay();
         });
 
         // Keyboard Support
