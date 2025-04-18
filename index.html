@@ -1,10 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Neumorphic Calculator</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600&family=Poppins:wght@300;400;500&display=swap"
+        rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -12,7 +15,6 @@
             box-sizing: border-box;
             font-family: 'Poppins', sans-serif;
             transition: all 0.3s ease;
-            user-select: none;
         }
 
         body {
@@ -21,7 +23,6 @@
             align-items: center;
             min-height: 100vh;
             background-color: #e0e5ec;
-            overflow: hidden;
         }
 
         /* Theme Variables */
@@ -104,6 +105,7 @@
                 transform: scale(0);
                 opacity: 0;
             }
+
             100% {
                 transform: scale(1);
                 opacity: 1;
@@ -246,15 +248,62 @@
             box-shadow: var(--button-active);
         }
 
+        .mode-toggle {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .mode-btn {
+            background-color: var(--button-bg);
+            border: none;
+            border-radius: 50px;
+            box-shadow: var(--button-shadow);
+            color: var(--digit-color);
+            cursor: pointer;
+            font-size: clamp(14px, 4vw, 16px);
+            font-weight: 500;
+            height: clamp(30px, 6vw, 40px);
+            padding: 0 15px;
+            transition: all 0.2s ease;
+        }
+
+        .mode-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .mode-btn:active {
+            transform: translateY(0);
+            box-shadow: var(--button-active);
+        }
+
+        .scientific-buttons {
+            display: none;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 4vh;
+        }
+
+        .scientific-mode .scientific-buttons {
+            display: grid;
+        }
+
+        @media (max-width: 400px) {
+            .scientific-buttons {
+                gap: 10px;
+            }
+        }
+
         @media (max-width: 400px) {
             .calculator {
                 padding: 15px;
             }
-            
+
             .buttons {
                 gap: 10px;
             }
-            
+
             .display {
                 padding: 15px;
                 margin-bottom: 15px;
@@ -262,6 +311,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="calculator">
         <div class="theme-toggle">
@@ -272,6 +322,10 @@
                 <button class="theme-btn frost-btn" data-theme="frost"></button>
                 <button class="theme-btn retro-btn" data-theme="retro"></button>
             </div>
+        </div>
+        <div class="mode-toggle">
+            <h3>Mode</h3>
+            <button class="mode-btn" id="mode-toggle-btn">Scientific</button>
         </div>
         <div class="display">
             <div class="previous-operand"></div>
@@ -298,30 +352,44 @@
             <button class="btn" data-action="decimal">.</button>
             <button class="btn equals" data-action="calculate">=</button>
         </div>
+        <div class="scientific-buttons">
+            <button class="btn" data-action="sin">sin</button>
+            <button class="btn" data-action="cos">cos</button>
+            <button class="btn" data-action="tan">tan</button>
+            <button class="btn" data-action="log">log</button>
+            <button class="btn" data-action="ln">ln</button>
+            <button class="btn" data-action="exp">eˣ</button>
+            <button class="btn" data-action="pow10">10ˣ</button>
+            <button class="btn" data-action="pow2">x²</button>
+            <button class="btn" data-action="pow3">x³</button>
+            <button class="btn" data-action="powy">xʸ</button>
+            <button class="btn" data-action="sqrt">√</button>
+            <button class="btn" data-action="cbrt">∛</button>
+            <button class="btn" data-action="pi">π</button>
+            <button class="btn" data-action="e">e</button>
+            <button class="btn" data-action="factorial">!</button>
+        </div>
     </div>
-
     <script>
+        // Calculator Class
         class Calculator {
             constructor(previousOperandElement, currentOperandElement) {
                 this.previousOperandElement = previousOperandElement;
                 this.currentOperandElement = currentOperandElement;
                 this.clear();
             }
-
             clear() {
                 this.currentOperand = '0';
                 this.previousOperand = '';
                 this.operation = undefined;
                 this.updateDisplay();
             }
-
             delete() {
                 if (this.currentOperand === '0') return;
                 this.currentOperand = this.currentOperand.toString().slice(0, -1);
                 if (this.currentOperand === '') this.currentOperand = '0';
                 this.updateDisplay();
             }
-
             appendNumber(number) {
                 if (number === '.' && this.currentOperand.includes('.')) return;
                 if (this.currentOperand === '0' && number !== '.') {
@@ -331,27 +399,21 @@
                 }
                 this.updateDisplay();
             }
-
             chooseOperation(operation) {
                 if (this.currentOperand === '0' && this.previousOperand === '') return;
-                
                 if (this.previousOperand !== '') {
                     this.calculate();
                 }
-                
                 this.operation = operation;
                 this.previousOperand = this.currentOperand;
                 this.currentOperand = '0';
                 this.updateDisplay();
             }
-
             calculate() {
                 let computation;
                 const prev = parseFloat(this.previousOperand);
                 const current = parseFloat(this.currentOperand);
-                
                 if (isNaN(prev) || isNaN(current)) return;
-                
                 switch (this.operation) {
                     case '+':
                         computation = prev + current;
@@ -375,11 +437,9 @@
                     default:
                         return;
                 }
-                
                 if (computation === 'Error') {
                     this.currentOperand = computation;
                 } else {
-                    // Handle large numbers and decimals
                     if (computation.toString().includes('.')) {
                         const decimalPart = computation.toString().split('.')[1];
                         if (decimalPart && decimalPart.length > 8) {
@@ -388,41 +448,34 @@
                     }
                     this.currentOperand = computation;
                 }
-                
                 this.operation = undefined;
                 this.previousOperand = '';
                 this.updateDisplay();
             }
-
             getDisplayNumber(number) {
                 const stringNumber = number.toString();
                 const integerDigits = parseFloat(stringNumber.split('.')[0]);
                 const decimalDigits = stringNumber.split('.')[1];
-                
                 let integerDisplay;
-                
                 if (isNaN(integerDigits)) {
                     integerDisplay = '';
                 } else {
                     integerDisplay = integerDigits.toLocaleString('en', { maximumFractionDigits: 0 });
                 }
-                
                 if (decimalDigits != null) {
                     return `${integerDisplay}.${decimalDigits}`;
                 } else {
                     return integerDisplay;
                 }
             }
-
             updateDisplay() {
                 if (this.currentOperand === 'Error') {
                     this.currentOperandElement.innerText = 'Error';
                 } else {
                     this.currentOperandElement.innerText = this.getDisplayNumber(this.currentOperand);
                 }
-                
                 if (this.operation != null) {
-                    this.previousOperandElement.innerText = 
+                    this.previousOperandElement.innerText =
                         `${this.getDisplayNumber(this.previousOperand)} ${this.operation}`;
                 } else {
                     this.previousOperandElement.innerText = '';
@@ -435,19 +488,12 @@
         const currentOperandElement = document.querySelector('.current-operand');
         const calculator = new Calculator(previousOperandElement, currentOperandElement);
 
-        // Button Event Listeners
+        // Event Listeners for Buttons
         document.querySelectorAll('.btn').forEach(button => {
             button.addEventListener('click', () => {
-                // Add button press animation
-                button.classList.add('pressed');
-                setTimeout(() => {
-                    button.classList.remove('pressed');
-                }, 100);
-
                 const action = button.getAttribute('data-action');
                 const buttonContent = button.textContent;
-
-                switch(action) {
+                switch (action) {
                     case 'number':
                         calculator.appendNumber(buttonContent);
                         break;
@@ -466,13 +512,63 @@
                     case 'calculate':
                         calculator.calculate();
                         break;
+                    default:
+                        // Handle scientific operations
+                        const scientificAction = button.getAttribute('data-action');
+                        if (scientificAction) {
+                            handleScientificOperation(scientificAction);
+                        }
+                        break;
                 }
             });
         });
 
+        // Scientific Operations
+        const scientificOperations = {
+            sin: x => Math.sin(x),
+            cos: x => Math.cos(x),
+            tan: x => Math.tan(x),
+            log: x => Math.log10(x),
+            ln: x => Math.log(x),
+            exp: x => Math.exp(x),
+            pow10: x => Math.pow(10, x),
+            pow2: x => Math.pow(x, 2),
+            pow3: x => Math.pow(x, 3),
+            powy: (x, y) => Math.pow(x, y),
+            sqrt: x => Math.sqrt(x),
+            cbrt: x => Math.cbrt(x),
+            pi: () => Math.PI,
+            e: () => Math.E,
+            factorial: x => {
+                if (x === 0 || x === 1) return 1;
+                let result = 1;
+                for (let i = 2; i <= x; i++) result *= i;
+                return result;
+            }
+        };
+
+        function handleScientificOperation(action) {
+            const currentOperand = parseFloat(calculator.currentOperand);
+            if (!isNaN(currentOperand)) {
+                const result = scientificOperations[action](currentOperand);
+                calculator.currentOperand = result.toString();
+                calculator.updateDisplay();
+            }
+        }
+
+        // Mode Toggle Logic
+        const modeToggleBtn = document.getElementById('mode-toggle-btn');
+        const calculatorDiv = document.querySelector('.calculator');
+        let isScientificMode = false;
+
+        modeToggleBtn.addEventListener('click', () => {
+            isScientificMode = !isScientificMode;
+            calculatorDiv.classList.toggle('scientific-mode');
+            modeToggleBtn.textContent = isScientificMode ? 'Standard' : 'Scientific';
+        });
+
         // Theme Switching
         const themeButtons = document.querySelectorAll('.theme-btn');
-        
         themeButtons.forEach(button => {
             button.addEventListener('click', () => {
                 const theme = button.getAttribute('data-theme');
@@ -484,20 +580,13 @@
         document.addEventListener('keydown', e => {
             if (e.key >= '0' && e.key <= '9') {
                 const button = document.querySelector(`[data-action="number"]:nth-of-type(${e.key === '0' ? 10 : parseInt(e.key) + 10})`);
-                if (button) {
-                    button.click();
-                }
+                if (button) button.click();
             } else if (e.key === '.') {
                 const button = document.querySelector('[data-action="decimal"]');
                 if (button) button.click();
-            } else if (e.key === '+' || e.key === '-') {
-                const button = document.querySelector(`[data-action="operator"]:nth-of-type(${e.key === '+' ? 8 : 7})`);
-                if (button) button.click();
-            } else if (e.key === '*') {
-                const button = document.querySelector('[data-action="operator"]:nth-of-type(4)');
-                if (button) button.click();
-            } else if (e.key === '/') {
-                const button = document.querySelector('[data-action="operator"]:nth-of-type(3)');
+            } else if (['+', '-', '*', '/'].includes(e.key)) {
+                const operatorMap = { '+': '+', '-': '-', '*': '×', '/': '÷' };
+                const button = document.querySelector(`[data-action="operator"][data-operator="${operatorMap[e.key]}"]`);
                 if (button) button.click();
             } else if (e.key === 'Enter' || e.key === '=') {
                 const button = document.querySelector('[data-action="calculate"]');
@@ -512,4 +601,6 @@
         });
     </script>
 </body>
+
+
 </html>
