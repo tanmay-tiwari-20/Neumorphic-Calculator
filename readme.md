@@ -46,6 +46,6 @@ This project is my small tribute to that simple yet powerful tool from my childh
    No installations required!
 
 ## 🚀 Live Demo
-   [Live Site] (https://tanmay-tiwari-20.github.io/Neumorphic-Calculator/)
+   [Live Site](https://tanmay-tiwari-20.github.io/Neumorphic-Calculator/)
 
 ## ⭐ Don’t forget to Star this repo if you liked it!
